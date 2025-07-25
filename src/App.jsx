@@ -62,9 +62,12 @@ function App() {
 		setError("");
 		setScrapedData(null);
 		try {
-			const response = await axios.post("http://localhost:3001/scrape", {
-				url,
-			});
+			const response = await axios.post(
+				import.meta.env.VITE_APP_API + "/scrape",
+				{
+					url,
+				}
+			);
 			setScrapedData(response.data);
 		} catch (err) {
 			const errorMessage =
