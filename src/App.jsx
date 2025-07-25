@@ -323,7 +323,7 @@ function App() {
 			</div>
 
 			<footer className="app-footer">
-				<p>Designed for continuous reading experience @Nanda.</p>
+				<p>Designed for continuous reading experience @Nandakumar.</p>
 			</footer>
 		</div>
 	);
