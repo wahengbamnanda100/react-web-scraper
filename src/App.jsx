@@ -3,16 +3,22 @@ import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import "./App.css";
 
-// --- Reusable Components ---
+// --- Reusable Components --
+//
+// --- Enhanced Reusable Components ---
+const Loader = () => (
+	<div className="loader-container">
+		<div className="loader"></div>
+		<p className="loader-text">Scraping content...</p>
+	</div>
+);
 
-const Loader = () => <div className="loader"></div>;
-
-// SVG Icon for the download button for better visual communication
+// Enhanced SVG Icons
 const DownloadIcon = () => (
 	<svg
 		xmlns="http://www.w3.org/2000/svg"
-		width="16"
-		height="16"
+		width="18"
+		height="18"
 		fill="currentColor"
 		viewBox="0 0 16 16">
 		<path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
@@ -20,23 +26,174 @@ const DownloadIcon = () => (
 	</svg>
 );
 
-// A dedicated component to display the scraped results in a card
-const ScrapedResult = ({ title, content, onDownload }) => (
-	<div className="scraped-result-card">
-		<div className="result-header">
-			<h2 className="result-title">{title}</h2>
-			<button className="download-button" onClick={onDownload}>
-				<DownloadIcon />
-				Download .md
-			</button>
+const ReadingModeIcon = () => (
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		width="18"
+		height="18"
+		fill="currentColor"
+		viewBox="0 0 16 16">
+		<path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
+		<path d="M3 0a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1H3zm0 1h10v14H3V1z" />
+	</svg>
+);
+
+const CollapseIcon = ({ isExpanded }) => (
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		width="18"
+		height="18"
+		fill="currentColor"
+		viewBox="0 0 16 16"
+		style={{
+			transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+			transition: "transform 0.3s ease",
+		}}>
+		<path
+			fillRule="evenodd"
+			d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"
+		/>
+	</svg>
+);
+
+// Enhanced Reading Controls Component
+const ReadingControls = ({
+	fontSize,
+	onFontSizeChange,
+	readingMode,
+	onReadingModeToggle,
+	isExpanded,
+	onToggleExpanded,
+}) => (
+	<div className="reading-controls">
+		<div className="controls-header" onClick={onToggleExpanded}>
+			<span className="controls-title">Reading Settings</span>
+			<CollapseIcon isExpanded={isExpanded} />
 		</div>
-		<article className="scraped-content">
-			<ReactMarkdown>{content}</ReactMarkdown>
-		</article>
+		{isExpanded && (
+			<div className="controls-content">
+				<div className="font-size-control">
+					<label>Text Size</label>
+					<div className="font-size-buttons">
+						<button
+							className={`size-btn ${fontSize === "small" ? "active" : ""}`}
+							onClick={() => onFontSizeChange("small")}>
+							A
+						</button>
+						<button
+							className={`size-btn ${fontSize === "medium" ? "active" : ""}`}
+							onClick={() => onFontSizeChange("medium")}>
+							A
+						</button>
+						<button
+							className={`size-btn large ${
+								fontSize === "large" ? "active" : ""
+							}`}
+							onClick={() => onFontSizeChange("large")}>
+							A
+						</button>
+					</div>
+				</div>
+				<div className="reading-mode-control">
+					<button
+						className={`mode-btn ${readingMode ? "active" : ""}`}
+						onClick={onReadingModeToggle}>
+						<ReadingModeIcon />
+						Focus Mode
+					</button>
+				</div>
+			</div>
+		)}
 	</div>
 );
 
-// Main App Component
+// / Enhanced Scraped Result Component with reading optimizations
+const ScrapedResult = ({ title, content, onDownload }) => {
+	const [fontSize, setFontSize] = useState("medium");
+	const [readingMode, setReadingMode] = useState(false);
+	const [controlsExpanded, setControlsExpanded] = useState(false);
+	const [estimatedReadTime, setEstimatedReadTime] = useState(0);
+
+	// Calculate estimated reading time (average 200 words per minute)
+	useState(() => {
+		const wordCount = content.split(/\s+/).length;
+		const readTime = Math.ceil(wordCount / 200);
+		setEstimatedReadTime(readTime);
+	}, [content]);
+
+	return (
+		<div className={`scraped-result-card ${readingMode ? "reading-mode" : ""}`}>
+			<div className="result-header">
+				<div className="title-section">
+					<h2 className="result-title">{title}</h2>
+					<div className="content-meta">
+						<span className="read-time">~{estimatedReadTime} min read</span>
+						<span className="word-count">
+							{content.split(/\s+/).length} words
+						</span>
+					</div>
+				</div>
+				<div className="header-actions">
+					<button className="download-button" onClick={onDownload}>
+						<DownloadIcon />
+						<span className="btn-text">Download</span>
+					</button>
+				</div>
+			</div>
+
+			<ReadingControls
+				fontSize={fontSize}
+				onFontSizeChange={setFontSize}
+				readingMode={readingMode}
+				onReadingModeToggle={() => setReadingMode(!readingMode)}
+				isExpanded={controlsExpanded}
+				onToggleExpanded={() => setControlsExpanded(!controlsExpanded)}
+			/>
+
+			<article className={`scraped-content ${fontSize}`}>
+				<div className="content-wrapper">
+					<ReactMarkdown
+						components={{
+							h1: ({ node, ...props }) => (
+								<h1 className="content-h1" {...props} />
+							),
+							h2: ({ node, ...props }) => (
+								<h2 className="content-h2" {...props} />
+							),
+							h3: ({ node, ...props }) => (
+								<h3 className="content-h3" {...props} />
+							),
+							p: ({ node, ...props }) => (
+								<p className="content-paragraph" {...props} />
+							),
+							ul: ({ node, ...props }) => (
+								<ul className="content-list" {...props} />
+							),
+							ol: ({ node, ...props }) => (
+								<ol className="content-list ordered" {...props} />
+							),
+							li: ({ node, ...props }) => (
+								<li className="content-list-item" {...props} />
+							),
+							blockquote: ({ node, ...props }) => (
+								<blockquote className="content-quote" {...props} />
+							),
+							code: ({ node, inline, ...props }) =>
+								inline ? (
+									<code className="content-inline-code" {...props} />
+								) : (
+									<code className="content-code-block" {...props} />
+								),
+						}}>
+						{content}
+					</ReactMarkdown>
+				</div>
+			</article>
+		</div>
+	);
+};
+
+// Main App Component with enhanced mobile UX
 function App() {
 	const [url, setUrl] = useState("");
 	const [scrapedData, setScrapedData] = useState(null);
@@ -48,7 +205,7 @@ function App() {
 			new URL(urlString);
 			return urlString.startsWith("http");
 		} catch (error) {
-			console.log({ error });
+			console.log(error);
 			return false;
 		}
 	};
@@ -80,6 +237,7 @@ function App() {
 
 	const handleDownload = () => {
 		if (!scrapedData) return;
+
 		const markdownFileContent = `# ${scrapedData.title}\n\n${scrapedData.content}`;
 		const blob = new Blob([markdownFileContent], { type: "text/markdown" });
 		const link = document.createElement("a");
@@ -94,6 +252,12 @@ function App() {
 		document.body.removeChild(link);
 	};
 
+	const handleKeyPress = (e) => {
+		if (e.key === "Enter" && !loading) {
+			handleScrape();
+		}
+	};
+
 	return (
 		<div className="App">
 			<div className="scraper-container">
@@ -101,30 +265,53 @@ function App() {
 					<h1>Story Scraper</h1>
 					<p className="subtitle">
 						Paste the URL of the first part of a story to save the entire series
-						as a single file.
+						as a single file optimized for mobile reading.
 					</p>
 				</header>
 
 				<div className="input-container">
-					<input
-						type="url"
-						value={url}
-						onChange={(e) => setUrl(e.target.value)}
-						placeholder="https://example.com/story/part-1"
-						disabled={loading}
-						aria-label="URL to scrape"
-					/>
+					<div className="input-wrapper">
+						<input
+							type="url"
+							value={url}
+							onChange={(e) => setUrl(e.target.value)}
+							onKeyPress={handleKeyPress}
+							placeholder="https://example.com/story/part-1"
+							disabled={loading}
+							aria-label="URL to scrape"
+							className="url-input"
+						/>
+						{url && (
+							<button
+								className="clear-btn"
+								onClick={() => setUrl("")}
+								aria-label="Clear URL">
+								×
+							</button>
+						)}
+					</div>
 					<button
 						onClick={handleScrape}
-						disabled={loading}
+						disabled={loading || !url.trim()}
 						className="scrape-button">
-						{loading ? "Scraping..." : "Scrape"}
+						{loading ? (
+							<>
+								<div className="btn-spinner"></div>
+								Scraping...
+							</>
+						) : (
+							"Scrape Story"
+						)}
 					</button>
 				</div>
 
 				<main className="output-container">
 					{loading && <Loader />}
-					{error && <div className="error-box">{error}</div>}
+					{error && (
+						<div className="error-box">
+							<strong>Error:</strong> {error}
+						</div>
+					)}
 					{scrapedData && (
 						<ScrapedResult
 							title={scrapedData.title}
@@ -134,8 +321,9 @@ function App() {
 					)}
 				</main>
 			</div>
+
 			<footer className="app-footer">
-				<p>Designed for educational purposes.</p>
+				<p>Designed for continuous reading experience @Nanda.</p>
 			</footer>
 		</div>
 	);
