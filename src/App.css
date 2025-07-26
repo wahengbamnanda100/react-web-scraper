@@ -1329,7 +1329,7 @@ input:disabled,
 
 	.app-navigation:has(.nav-button[href="/library"].active)::before,
 	.app-navigation[data-active="library"]::before {
-		transform: translateX(calc(50% + 2px));
+		transform: translateX(100%);
 	}
 
 	/* Faster transitions on mobile for better UX */
@@ -1366,7 +1366,7 @@ input:disabled,
 
 	.app-navigation:has(.nav-button[href="/library"].active)::before,
 	.app-navigation[data-active="library"]::before {
-		transform: translateX(calc(50% + 1px));
+		transform: translateX(100%);
 	}
 
 	.view-container {
