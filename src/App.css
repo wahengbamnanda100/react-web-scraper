@@ -134,7 +134,7 @@ body {
 	);
 }
 .app-footer {
-	margin-top: 1rem;
+	margin-top: 0.4rem;
 	color: var(--tertiary-text);
 	font-size: 0.875rem;
 	text-align: center;
