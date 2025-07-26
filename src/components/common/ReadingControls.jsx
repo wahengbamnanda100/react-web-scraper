@@ -1,4 +1,5 @@
 import CollapseIcon from "./icons/CollapseIcon";
+import ReadingModeIcon from "./icons/RaedIcon";
 
 const ReadingControls = ({
 	fontSize,

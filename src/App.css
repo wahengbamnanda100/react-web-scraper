@@ -550,6 +550,7 @@ input:disabled,
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
+	margin-top: 2rem;
 	padding: 0.75rem 1rem;
 	border-radius: var(--border-radius-sm);
 	border: 1px solid var(--glass-border);
@@ -689,6 +690,8 @@ input:disabled,
 	color: var(--accent-hover);
 	border-bottom-color: var(--accent-hover);
 } /* Note: This closing brace seems to be for a missing rule, likely a typo in the original */
+
+/*!library design */
 
 /* --- Mobile Optimizations (320px and up) --- */
 @media (min-width: 320px) {
@@ -920,4 +923,670 @@ input:disabled,
 .scraped-content a:hover {
 	color: var(--accent-hover);
 	text-decoration: underline;
+}
+
+/* --- Improved App Navigation --- */
+.app-navigation {
+	display: flex;
+	justify-content: center;
+	gap: 1rem; /* Space between buttons */
+	margin-bottom: 2rem;
+	padding: 0 1rem; /* Add some side padding */
+	width: 100%;
+	max-width: 600px; /* Match or be slightly wider than container max-widths if desired */
+}
+
+.nav-button {
+	padding: 0.75rem 1.5rem;
+	border-radius: var(--border-radius-md);
+	border: 1px solid var(--glass-border);
+	background: var(--glass-bg);
+	color: var(--secondary-text);
+	font-weight: 600;
+	cursor: pointer;
+	transition: all var(--transition-smooth);
+	font-size: 1rem;
+	flex: 1; /* Make buttons take equal space */
+	max-width: 200px; /* Optional: Limit button width */
+}
+
+.nav-button:hover {
+	border-color: var(--accent-primary);
+	color: var(--accent-primary);
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.nav-button.active {
+	background: var(--accent-primary);
+	border-color: var(--accent-primary);
+	color: #ffffff;
+	box-shadow: var(--shadow-sm);
+}
+
+/* --- Library List Improvements --- */
+.library-list h2 {
+	margin-top: 0;
+	margin-bottom: 1.5rem;
+	color: var(--primary-text);
+	font-size: 1.5rem;
+	font-weight: 700;
+}
+
+.story-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem; /* Space between list items */
+}
+
+.story-item {
+	display: flex;
+	align-items: center; /* Align items vertically */
+	justify-content: space-between; /* Put content on left, button on right */
+	padding: 1.25rem;
+	border-radius: var(--border-radius-md);
+	border: 1px solid var(--glass-border);
+	background: var(--glass-bg);
+	transition: all var(--transition-fast);
+	position: relative; /* For potential pseudo-elements or absolute positioning */
+}
+
+.story-item:hover {
+	background: rgba(255, 255, 255, 0.04);
+	border-color: var(--accent-primary);
+}
+
+.story-item.loading {
+	opacity: 0.7;
+	/* cursor: wait; */ /* Optional: indicate loading */
+}
+
+.story-item.deleting {
+	/* Style for item being deleted */
+	opacity: 0.5;
+	pointer-events: none; /* Prevent interaction while deleting */
+}
+
+.story-item h3 {
+	margin: 0 0 0.5rem 0;
+	font-size: 1.1rem;
+	font-weight: 600;
+	color: var(--primary-text);
+}
+
+.story-item p {
+	margin: 0 0 0.25rem 0;
+	font-size: 0.9rem;
+	color: var(--secondary-text);
+}
+
+.story-item small {
+	color: var(--tertiary-text);
+	font-size: 0.8rem;
+}
+
+/* --- Remove Button in Library --- */
+.remove-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px; /* Fixed size */
+	height: 36px;
+	border-radius: 50%;
+	border: 1px solid var(--error-border); /* Use error color */
+	background: rgba(239, 68, 68, 0.1); /* Subtle error background */
+	color: var(--error-text); /* Error text color */
+	cursor: pointer;
+	transition: all var(--transition-fast);
+	flex-shrink: 0; /* Prevent button from shrinking */
+	margin-left: 1rem; /* Space from text */
+	padding: 0; /* Remove default padding */
+}
+
+.remove-button:hover:not(:disabled) {
+	background: var(--error-background);
+	border-color: var(--error-text);
+	color: #ffffff; /* Invert color on hover */
+	transform: scale(1.1); /* Slight scale up */
+}
+
+.remove-button:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+	transform: none;
+	background: var(--error-background);
+	border-color: var(--error-border);
+	color: var(--error-text); /* Keep original color when disabled */
+}
+
+/* --- View Container (optional, for consistency) --- */
+.view-container {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+/* --- Ensure output-container takes full width within view-container --- */
+.view-container > .scraper-container > .output-container {
+	width: 100%; /* Ensure it uses full width of its parent */
+}
+
+/* --- Responsive adjustments for navigation if needed --- */
+@media (max-width: 480px) {
+	.app-navigation {
+		gap: 0.5rem;
+		padding: 0 0.5rem;
+	}
+
+	.nav-button {
+		padding: 0.6rem 1rem;
+		font-size: 0.9rem;
+	}
+}
+
+/* transiton animation */
+
+/* src/components/AppTransitions.css */
+
+/* --- Smooth Page Transition Styles --- */
+/* These styles work with the 'fade' classNames used in CSSTransition */
+
+/* Base class for the transitioning element */
+.fade-enter {
+	/* Initial state when entering */
+	opacity: 0;
+	transform: translateY(10px); /* Optional: slight slide-up effect */
+}
+
+.fade-enter-active {
+	/* Active state during enter transition */
+	opacity: 1;
+	transform: translateY(0);
+	transition: opacity 300ms ease-out, transform 300ms ease-out; /* Match timeout */
+}
+
+.fade-exit {
+	/* Initial state when exiting */
+	opacity: 1;
+	transform: translateY(0);
+}
+
+.fade-exit-active {
+	/* Active state during exit transition */
+	opacity: 0;
+	transform: translateY(10px); /* Optional: slight slide-down effect */
+	transition: opacity 300ms ease-in, transform 300ms ease-in; /* Match timeout */
+}
+
+/* Ensure the view container can handle absolute positioning if needed for transitions */
+.view-container {
+	position: relative; /* Needed for transitions */
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	min-height: 60vh; /* Give it some height to show transitions clearly */
+}
+
+/* Style the routes if needed, though they inherit from scraper-container */
+/* If you want routes to fill the view-container */
+.view-container > div {
+	/* This targets the divs rendered by Routes (Scraper/Library components) */
+	width: 100%;
+	/* height: 100%; */ /* Uncomment if you want them to fill the container */
+	/* position: absolute; */ /* Uncomment for absolute positioning during transitions */
+	/* top: 0;
+   left: 0; */
+}
+
+/* Optional: Add a class to the App container if needed for global transition styles */
+/* .App.transitioning {
+   ... styles applied during transition if needed ...
+} */
+
+/* Mobile-First Navigation Styles */
+.app-navigation {
+	position: absolute;
+	/* top: 10px; */
+	z-index: 100;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background: var(--glass-bg);
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+	border: 1px solid var(--glass-border);
+	border-radius: var(--border-radius-lg);
+	padding: 6px;
+	margin: 16px auto 24px auto;
+	max-width: 400px;
+	box-shadow: var(--shadow-md);
+	overflow: hidden;
+}
+
+.nav-button {
+	position: relative;
+	z-index: 2;
+	flex: 1;
+	padding: 14px 20px;
+	border-radius: var(--border-radius-md);
+	color: var(--secondary-text);
+	text-decoration: none;
+	font-weight: 600;
+	font-size: 15px;
+	letter-spacing: 0.3px;
+	transition: color 0.3s ease, transform 0.2s ease;
+	text-align: center;
+	user-select: none;
+	min-height: 44px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+@media (hover: hover) {
+	.nav-button:hover {
+		color: var(--primary-text);
+		transform: translateY(-1px);
+	}
+}
+
+.nav-button:active {
+	transform: scale(0.96);
+	transition: transform 0.1s ease;
+}
+
+.nav-button.active {
+	color: var(--primary-text);
+	text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+	font-weight: 700;
+}
+
+/* Sliding Background Indicator */
+.app-navigation::before {
+	content: "";
+	position: absolute;
+	top: 6px;
+	left: 6px;
+	width: calc(50% - 6px);
+	height: calc(100% - 12px);
+	background: var(
+		--accent-gradient,
+		linear-gradient(to right, #6b46c1, #805ad5)
+	);
+	border-radius: var(--border-radius-md);
+	transition: transform 0.35s ease;
+	z-index: 1;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25),
+		inset 0 1px 0 rgba(255, 255, 255, 0.08);
+	pointer-events: none;
+}
+
+/* Slide when Library is active */
+.app-navigation[data-active="library"]::before {
+	transform: translateX(100%);
+}
+
+/* Alternative method using data attributes */
+/* .app-navigation[data-active="library"]::before {
+	transform: translateX(calc(50% + 0px));
+} */
+
+/* Mobile-Optimized Page Transitions - Fixed Direction Logic */
+.view-container {
+	position: relative;
+	min-height: calc(100vh - 200px);
+	overflow: hidden;
+	/* Optimize for mobile performance */
+	-webkit-transform: translateZ(0);
+	transform: translateZ(0);
+	backface-visibility: hidden;
+	-webkit-backface-visibility: hidden;
+}
+
+/* Left to Right Navigation (Scraper -> Library) */
+/* Content should slide LEFT TO RIGHT (same direction as nav indicator) */
+.slide-left-to-right-enter {
+	opacity: 0;
+	transform: translateX(-100%); /* Start from LEFT */
+	will-change: transform, opacity;
+}
+
+.slide-left-to-right-enter-active {
+	opacity: 1;
+	transform: translateX(0); /* Move to center */
+	transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+		opacity 0.35s ease-out;
+}
+
+.slide-left-to-right-exit {
+	opacity: 1;
+	transform: translateX(0); /* Start from center */
+	will-change: transform, opacity;
+}
+
+.slide-left-to-right-exit-active {
+	opacity: 0;
+	transform: translateX(100%); /* Exit to RIGHT */
+	transition: transform 0.35s cubic-bezier(0.55, 0.06, 0.68, 0.19),
+		opacity 0.35s ease-in;
+}
+
+/* Right to Left Navigation (Library -> Scraper) */
+/* Content should slide RIGHT TO LEFT (same direction as nav indicator) */
+.slide-right-to-left-enter {
+	opacity: 0;
+	transform: translateX(100%); /* Start from RIGHT */
+	will-change: transform, opacity;
+}
+
+.slide-right-to-left-enter-active {
+	opacity: 1;
+	transform: translateX(0); /* Move to center */
+	transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+		opacity 0.35s ease-out;
+}
+
+.slide-right-to-left-exit {
+	opacity: 1;
+	transform: translateX(0); /* Start from center */
+	will-change: transform, opacity;
+}
+
+.slide-right-to-left-exit-active {
+	opacity: 0;
+	transform: translateX(-100%); /* Exit to LEFT */
+	transition: transform 0.35s cubic-bezier(0.55, 0.06, 0.68, 0.19),
+		opacity 0.35s ease-in;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 768px) {
+	.app-navigation {
+		margin: 12px 12px 20px 12px;
+		width: calc(100% - 24px);
+		padding: 4px;
+		position: relative;
+		top: 8px;
+	}
+
+	.nav-button {
+		padding: 12px 16px;
+		font-size: 14px;
+		font-weight: 600;
+		margin: 0 1px;
+	}
+
+	.app-navigation::before {
+		top: 4px;
+		left: 4px;
+		width: calc(50% - 4px);
+		height: calc(100% - 8px);
+	}
+
+	.app-navigation:has(.nav-button[href="/library"].active)::before,
+	.app-navigation[data-active="library"]::before {
+		transform: translateX(calc(50% + 2px));
+	}
+
+	/* Faster transitions on mobile for better UX */
+	.slide-left-to-right-enter-active,
+	.slide-left-to-right-exit-active,
+	.slide-right-to-left-enter-active,
+	.slide-right-to-left-exit-active {
+		transition-duration: 0.3s;
+	}
+}
+
+/* Very small screens (iPhone SE, etc.) */
+@media (max-width: 375px) {
+	.app-navigation {
+		margin: 10px 10px 16px 10px;
+		width: calc(100% - 20px);
+		border-radius: var(--border-radius-md);
+		padding: 3px;
+	}
+
+	.nav-button {
+		padding: 10px 12px;
+		font-size: 13px;
+		letter-spacing: 0.2px;
+		margin: 0 0.5px;
+	}
+
+	.app-navigation::before {
+		top: 3px;
+		left: 3px;
+		width: calc(50% - 3px);
+		height: calc(100% - 6px);
+	}
+
+	.app-navigation:has(.nav-button[href="/library"].active)::before,
+	.app-navigation[data-active="library"]::before {
+		transform: translateX(calc(50% + 1px));
+	}
+
+	.view-container {
+		min-height: calc(100vh - 180px);
+	}
+}
+
+/* Landscape mobile optimization */
+@media (max-height: 500px) and (orientation: landscape) {
+	.app-navigation {
+		position: realtive;
+		top: 8px;
+		left: 50%;
+		transform: translateX(-50%);
+		margin: 0;
+		width: auto;
+		max-width: 300px;
+		z-index: 1000;
+	}
+
+	.view-container {
+		padding-top: 70px;
+		min-height: calc(100vh - 120px);
+	}
+}
+
+/* Disable gradient animation on mobile for better performance */
+@media (max-width: 768px) {
+	.app-navigation::before {
+		animation: none;
+		background-size: 100% 100%;
+	}
+}
+
+/* Glow effects for active navigation - Mobile optimized */
+.nav-button.active::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	border-radius: var(--border-radius-md);
+	background: var(--accent-gradient);
+	opacity: 0.1;
+	z-index: -1;
+}
+
+/* Safe area support for newer mobile devices */
+@supports (padding: max(0px)) {
+	.app-navigation {
+		margin-left: max(16px, env(safe-area-inset-left));
+		margin-right: max(16px, env(safe-area-inset-right));
+		width: calc(
+			100% - max(32px, env(safe-area-inset-left) + env(safe-area-inset-right))
+		);
+	}
+
+	@media (max-width: 768px) {
+		.app-navigation {
+			margin-left: max(12px, env(safe-area-inset-left));
+			margin-right: max(12px, env(safe-area-inset-right));
+			width: calc(
+				100% - max(24px, env(safe-area-inset-left) + env(safe-area-inset-right))
+			);
+		}
+	}
+
+	@media (max-width: 375px) {
+		.app-navigation {
+			margin-left: max(10px, env(safe-area-inset-left));
+			margin-right: max(10px, env(safe-area-inset-right));
+			width: calc(
+				100% - max(20px, env(safe-area-inset-left) + env(safe-area-inset-right))
+			);
+		}
+	}
+}
+
+/* Smooth gradient animation - disabled on mobile for performance */
+@keyframes gradientShift {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
+/* Only enable gradient animation on desktop */
+@media (min-width: 769px) and (hover: hover) {
+	.app-navigation::before {
+		background-size: 200% 200%;
+		animation: gradientShift 4s ease infinite;
+	}
+}
+
+/* Focus states for accessibility */
+.nav-button:focus {
+	outline: 2px solid var(--accent-primary);
+	outline-offset: 2px;
+}
+
+.nav-button:focus:not(:focus-visible) {
+	outline: none;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+	.app-navigation {
+		border: 2px solid var(--primary-text);
+	}
+
+	.nav-button.active {
+		background: var(--accent-primary);
+		color: var(--background-primary);
+	}
+}
+
+/* Reduced motion support */
+/* @media (prefers-reduced-motion: reduce) {
+	.app-navigation::before {
+		animation: none;
+		transition: transform 0.15s ease;
+	}
+
+	.slide-left-to-right-enter-active,
+	.slide-left-to-right-exit-active,
+	.slide-right-to-left-enter-active,
+	.slide-right-to-left-exit-active {
+		transition: opacity 0.2s ease;
+		transform: none !important;
+	}
+
+	.slide-left-to-right-enter,
+	.slide-left-to-right-exit-active,
+	.slide-right-to-left-enter,
+	.slide-right-to-left-exit-active {
+		opacity: 0;
+		transform: none;
+	}
+
+	.slide-left-to-right-enter-active,
+	.slide-right-to-left-enter-active {
+		opacity: 1;
+		transform: none;
+	}
+} */
+
+/* Right to Left Animation: both pages move to left */
+/* .slide-right-to-left-enter {
+		transform: translateX(100%);
+	}
+	.slide-right-to-left-enter-active {
+		transform: translateX(0%);
+		transition: transform 0.35s ease-in-out;
+	}
+
+	.slide-right-to-left-exit {
+		transform: translateX(0%);
+	}
+	.slide-right-to-left-exit-active {
+		transform: translateX(-100%);
+		transition: transform 0.35s ease-in-out;
+	} */
+
+/* Left to Right Animation: forward direction */
+/* .slide-left-to-right-enter {
+		transform: translateX(-100%);
+	}
+	.slide-left-to-right-enter-active {
+		transform: translateX(0%);
+		transition: transform 0.35s ease-in-out;
+	}
+
+	.slide-left-to-right-exit {
+		transform: translateX(0%);
+	}
+	.slide-left-to-right-exit-active {
+		transform: translateX(100%);
+		transition: transform 0.35s ease-in-out;
+	} */
+
+/* ========== LEFT TO RIGHT ========== */
+.slide-left-to-right-enter {
+	transform: translateX(-100%);
+	opacity: 1;
+}
+.slide-left-to-right-enter-active {
+	transform: translateX(0%);
+	transition: transform 0.35s ease;
+}
+
+.slide-left-to-right-exit {
+	transform: translateX(100%);
+	opacity: 1;
+}
+.slide-left-to-right-exit-active {
+	transform: translateX(100%);
+	transition: transform 0.35s ease;
+}
+
+/* ========== RIGHT TO LEFT ========== */
+.slide-right-to-left-enter {
+	transform: translateX(100%);
+	opacity: 1;
+}
+.slide-right-to-left-enter-active {
+	transform: translateX(0%);
+	transition: transform 0.35s ease;
+}
+
+.slide-right-to-left-exit {
+	transform: translateX(-100%);
+	opacity: 1;
+}
+.slide-right-to-left-exit-active {
+	transform: translateX(-100%);
+	transition: transform 0.35s ease;
 }
