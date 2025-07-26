@@ -19,6 +19,8 @@ const ScrapedResultWithSave = ({
 	onSaveToLibrary,
 	saveLoading,
 	saveError,
+	isAuthorResult = false,
+	authorStats = null,
 }) => {
 	// Move state and controls logic here or pass as props if preferred
 	// For simplicity, keeping it inline for now, but consider extracting if complex
@@ -45,6 +47,17 @@ const ScrapedResultWithSave = ({
 					<div className="content-meta">
 						<span className="read-time">~{estimatedReadTime} min read</span>
 						<span className="word-count">{wordCount} words</span>
+						{isAuthorResult && authorStats && (
+							<>
+								<span className="story-count">
+									{authorStats.totalStories} stories
+								</span>
+								<span className="success-rate">
+									{authorStats.successfullyScraped}/{authorStats.totalStories}{" "}
+									scraped
+								</span>
+							</>
+						)}
 					</div>
 				</div>
 				<div className="header-actions">
@@ -76,9 +89,6 @@ const ScrapedResultWithSave = ({
 			</div>
 
 			{/* --- Reading Controls --- */}
-			{/* Include your ReadingControls component here */}
-			{/* You'll need to manage its state (fontSize, readingMode, etc.) within this component or pass down */}
-			{/* Example placeholder - you need to implement the full ReadingControls logic here or lift state up */}
 			<div className="reading-controls">
 				<div
 					className="controls-header"
@@ -138,7 +148,7 @@ const ScrapedResultWithSave = ({
 									fill="currentColor"
 									viewBox="0 0 16 16">
 									<path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
-									<path d="M3 0a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1H3zm0 1h10v14H3V1z" />
+									<path d="M3 0a1 1 0 0 0-1 1v14a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1H3zm0 1h10v14H3V1z" />
 								</svg>
 								Focus Mode
 							</button>
@@ -197,6 +207,7 @@ const Scraper = () => {
 	const [scrapedData, setScrapedData] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
+	const [scrapeMode, setScrapeMode] = useState("single"); // "single" or "author"
 	const {
 		saveStory,
 		loading: saveLoading,
@@ -213,20 +224,44 @@ const Scraper = () => {
 		}
 	};
 
+	const isAuthorUrl = (urlString) => {
+		return urlString.includes("/author/");
+	};
+
 	const handleScrape = async () => {
 		if (!isValidUrl(url)) {
 			setError("Please enter a valid URL beginning with http or https.");
 			return;
 		}
+
+		// Auto-detect scrape mode based on URL
+		const isAuthor = isAuthorUrl(url);
+		const endpoint = isAuthor ? "/scrape-author" : "/scrape";
+
 		setLoading(true);
 		setError("");
 		setScrapedData(null);
+
 		try {
 			const response = await axios.post(
-				import.meta.env.VITE_APP_API + "/scrape", // Ensure VITE_APP_API is set
+				import.meta.env.VITE_APP_API + endpoint,
 				{ url }
 			);
-			setScrapedData(response.data);
+
+			// Add metadata to help with rendering
+			const dataWithMeta = {
+				...response.data,
+				isAuthorResult: isAuthor,
+				authorStats: isAuthor
+					? {
+							totalStories: response.data.totalStories,
+							successfullyScraped: response.data.successfullyScraped,
+							storyList: response.data.storyList,
+					  }
+					: null,
+			};
+
+			setScrapedData(dataWithMeta);
 		} catch (err) {
 			const errorMessage =
 				err.response?.data?.error || "An unexpected error occurred.";
@@ -261,8 +296,8 @@ const Scraper = () => {
 			title: scrapedData.title,
 			content: scrapedData.content,
 			savedAt: new Date().toISOString(),
-			// Recalculate/store if needed for library view consistency
-			// wordCount and readTime are calculated in StoryViewer/ScrapedResult
+			isAuthorCollection: scrapedData.isAuthorResult || false,
+			authorStats: scrapedData.authorStats || null,
 		};
 
 		try {
@@ -271,7 +306,6 @@ const Scraper = () => {
 		} catch (err) {
 			// Error is handled by the hook and displayed in the component
 			console.error("Save failed in component:", err);
-			// alert('Failed to save story.'); // Optional: Additional UI feedback
 		}
 	};
 
@@ -281,15 +315,74 @@ const Scraper = () => {
 		}
 	};
 
+	const handleModeChange = (mode) => {
+		setScrapeMode(mode);
+		setScrapedData(null);
+		setError("");
+	};
+
+	// Auto-detect mode based on URL
+	React.useEffect(() => {
+		if (url && isAuthorUrl(url)) {
+			setScrapeMode("author");
+		} else if (url) {
+			setScrapeMode("single");
+		}
+	}, [url]);
+
 	return (
 		<div className="scraper-container">
 			<header className="app-header">
 				<h1>Story Scraper</h1>
 				<p className="subtitle">
-					Paste the URL of the first part of a story to save the entire series
-					as a single file optimized for mobile reading.
+					Paste the URL of a story or author page to scrape content optimized
+					for mobile reading.
 				</p>
 			</header>
+
+			{/* Mode Selector */}
+			<div className="mode-selector">
+				<div className="mode-tabs">
+					<button
+						className={`mode-tab ${scrapeMode === "single" ? "active" : ""}`}
+						onClick={() => handleModeChange("single")}>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="18"
+							height="18"
+							fill="currentColor"
+							viewBox="0 0 16 16">
+							<path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
+						</svg>
+						Single Story
+					</button>
+					<button
+						className={`mode-tab ${scrapeMode === "author" ? "active" : ""}`}
+						onClick={() => handleModeChange("author")}>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="18"
+							height="18"
+							fill="currentColor"
+							viewBox="0 0 16 16">
+							<path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+							<path
+								fillRule="evenodd"
+								d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z"
+							/>
+							<path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />
+						</svg>
+						Author Page
+					</button>
+				</div>
+				<div className="mode-description">
+					{scrapeMode === "single" ? (
+						<p>Scrape a single story with all its parts</p>
+					) : (
+						<p>Scrape all stories from an author's page</p>
+					)}
+				</div>
+			</div>
 
 			<div className="input-container">
 				<div className="input-wrapper">
@@ -298,7 +391,11 @@ const Scraper = () => {
 						value={url}
 						onChange={(e) => setUrl(e.target.value)}
 						onKeyPress={handleKeyPress}
-						placeholder="https://example.com/story/part-1  "
+						placeholder={
+							scrapeMode === "author"
+								? "https://example.com/author/username/"
+								: "https://example.com/story/part-1"
+						}
 						disabled={loading}
 						aria-label="URL to scrape"
 						className="url-input"
@@ -319,16 +416,67 @@ const Scraper = () => {
 					{loading ? (
 						<>
 							<div className="btn-spinner"></div>
-							Scraping...
+							{scrapeMode === "author" ? "Scraping Author..." : "Scraping..."}
 						</>
+					) : scrapeMode === "author" ? (
+						"Scrape Author"
 					) : (
 						"Scrape Story"
 					)}
 				</button>
 			</div>
 
+			{/* URL Detection Helper */}
+			{url && (
+				<div className="url-detection">
+					<div
+						className={`detection-badge ${
+							isAuthorUrl(url) ? "author" : "single"
+						}`}>
+						{isAuthorUrl(url) ? (
+							<>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="16"
+									height="16"
+									fill="currentColor"
+									viewBox="0 0 16 16">
+									<path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
+									<path
+										fillRule="evenodd"
+										d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"
+									/>
+								</svg>
+								Author page detected - will scrape all stories
+							</>
+						) : (
+							<>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="16"
+									height="16"
+									fill="currentColor"
+									viewBox="0 0 16 16">
+									<path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
+								</svg>
+								Single story detected
+							</>
+						)}
+					</div>
+				</div>
+			)}
+
 			<main className="output-container">
-				{loading && <Loader />}
+				{loading && (
+					<div className="loading-container">
+						<Loader />
+						{scrapeMode === "author" && (
+							<p className="loading-text">
+								Scraping author page and all stories... This may take a while.
+							</p>
+						)}
+					</div>
+				)}
 				{error && (
 					<div className="error-box">
 						<strong>Error:</strong> {error}
@@ -340,8 +488,10 @@ const Scraper = () => {
 						content={scrapedData.content}
 						onDownload={handleDownload}
 						onSaveToLibrary={handleSaveToLibrary}
-						saveLoading={saveLoading} // Pass save loading state
-						saveError={saveError} // Pass save error state
+						saveLoading={saveLoading}
+						saveError={saveError}
+						isAuthorResult={scrapedData.isAuthorResult}
+						authorStats={scrapedData.authorStats}
 					/>
 				)}
 			</main>
