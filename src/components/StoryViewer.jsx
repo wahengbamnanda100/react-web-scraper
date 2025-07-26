@@ -1,5 +1,5 @@
 // src/components/StoryViewer.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import ReadingControls from "./common/ReadingControls";
 
@@ -13,6 +13,7 @@ const StoryViewer = ({ story, onBack }) => {
 	const [controlsExpanded, setControlsExpanded] = useState(false);
 	const [estimatedReadTime, setEstimatedReadTime] = useState(0);
 	const [wordCount, setWordCount] = useState(0);
+	const [openSection, setOpenSection] = useState(0);
 
 	useEffect(() => {
 		if (story?.content) {
@@ -22,6 +23,81 @@ const StoryViewer = ({ story, onBack }) => {
 			setEstimatedReadTime(readTime);
 		}
 	}, [story?.content]);
+
+	const sections = useMemo(() => {
+		if (!story?.content) return [];
+
+		const contentSections = story.content.split(/(\n## .*\n)/).filter(Boolean);
+		const result = [];
+		let currentSection = { title: story.title, content: "" };
+
+		for (const part of contentSections) {
+			if (part.startsWith("\n## ")) {
+				if (currentSection.content) {
+					result.push(currentSection);
+				}
+				currentSection = {
+					title: part.replace("\n## ", "").trim(),
+					content: "",
+				};
+			} else {
+				currentSection.content += part;
+			}
+		}
+		result.push(currentSection);
+
+		return result;
+	}, [story?.content, story.title]);
+
+	const handleToggle = (index) => {
+		setOpenSection((prev) => (prev === index ? null : index));
+	};
+
+	const AccordionSection = ({ section, index, fontSize }) => (
+		<div className="accordion-section">
+			<button className="accordion-header" onClick={() => handleToggle(index)}>
+				<h2 className="accordion-title">{section.title}</h2>
+				<CollapseIcon isExpanded={openSection === index} />
+			</button>
+			{openSection === index && (
+				<div className={`accordion-body ${fontSize}`}>
+					<ReactMarkdown
+						components={{
+							h1: ({ node, ...props }) => (
+								<h1 className="content-h1" {...props} />
+							),
+							h2: () => null, // Prevent nested accordion
+							h3: ({ node, ...props }) => (
+								<h3 className="content-h3" {...props} />
+							),
+							p: ({ node, ...props }) => <p className="content-p" {...props} />,
+							ul: ({ node, ...props }) => (
+								<ul className="content-ul" {...props} />
+							),
+							ol: ({ node, ...props }) => (
+								<ol className="content-ol" {...props} />
+							),
+							li: ({ node, ...props }) => (
+								<li className="content-li" {...props} />
+							),
+							blockquote: ({ node, ...props }) => (
+								<blockquote className="content-quote" {...props} />
+							),
+							code: ({ node, inline, ...props }) =>
+								inline ? (
+									<code className="inline-code" {...props} />
+								) : (
+									<pre className="code-block">
+										<code {...props} />
+									</pre>
+								),
+						}}>
+						{section.content}
+					</ReactMarkdown>
+				</div>
+			)}
+		</div>
+	);
 
 	if (!story) {
 		return <div className="error-box">No story provided to view.</div>;
@@ -70,41 +146,16 @@ const StoryViewer = ({ story, onBack }) => {
 
 			<article className={`scraped-content ${fontSize}`}>
 				<div className="content-wrapper">
-					<ReactMarkdown
-						components={{
-							h1: ({ node, ...props }) => (
-								<h1 className="content-h1" {...props} />
-							),
-							h2: ({ node, ...props }) => (
-								<h2 className="content-h2" {...props} />
-							),
-							h3: ({ node, ...props }) => (
-								<h3 className="content-h3" {...props} />
-							),
-							p: ({ node, ...props }) => (
-								<p className="content-paragraph" {...props} />
-							),
-							ul: ({ node, ...props }) => (
-								<ul className="content-list" {...props} />
-							),
-							ol: ({ node, ...props }) => (
-								<ol className="content-list ordered" {...props} />
-							),
-							li: ({ node, ...props }) => (
-								<li className="content-list-item" {...props} />
-							),
-							blockquote: ({ node, ...props }) => (
-								<blockquote className="content-quote" {...props} />
-							),
-							code: ({ node, inline, ...props }) =>
-								inline ? (
-									<code className="content-inline-code" {...props} />
-								) : (
-									<code className="content-code-block" {...props} />
-								),
-						}}>
-						{story.content}
-					</ReactMarkdown>
+					{sections.map((section, index) => (
+						<div key={index}>
+							<AccordionSection
+								key={index}
+								section={section}
+								index={index}
+								fontSize={fontSize}
+							/>
+						</div>
+					))}
 				</div>
 			</article>
 		</div>
